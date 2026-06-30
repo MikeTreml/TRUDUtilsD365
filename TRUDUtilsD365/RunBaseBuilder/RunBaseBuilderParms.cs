@@ -41,6 +41,8 @@ namespace TRUDUtilsD365.RunBaseBuilder
 
         public List<RunBaseBuilderVar> FieldsList;
         protected RunBaseBuilderVar ExternalTableVar;
+        protected bool IsExternalTableMultiSelect;
+        protected string ExternalTableVarBaseName;
 
         protected AxClass NewAxClass;
 
@@ -49,7 +51,7 @@ namespace TRUDUtilsD365.RunBaseBuilder
         protected const string ClassNameParm             = "Class name";
         protected const string DescriptionParmName       = "Description";
         protected const string QueryTableParmName        = "Query table";
-        protected const string ExternalTableNameParmName = "External table name";
+        protected const string ExternalTableNameParmName = "External table(',m' for multiselect)";
         protected const string AddFileUploadParmName     = "Add file upload(y,excel,csv)";
         protected const string CreateMenuItemParmName    = "Create menu item(y)";
         protected const string ParametersParmName        = "Parameters..";
@@ -83,6 +85,27 @@ namespace TRUDUtilsD365.RunBaseBuilder
             ClassDescription = snippetsParms.GetParmStr(DescriptionParmName);
             QueryTable       = snippetsParms.GetParmStr(QueryTableParmName);
             ExternalTable    = snippetsParms.GetParmStr(ExternalTableNameParmName);
+            IsExternalTableMultiSelect = false;
+            ExternalTableVarBaseName = string.Empty;
+            if (!String.IsNullOrWhiteSpace(ExternalTable))
+            {
+                string[] externalTableParts = ExternalTable.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (externalTableParts.Length > 0)
+                {
+                    ExternalTable = externalTableParts[0].Trim();
+                }
+                if (externalTableParts.Length > 1 && externalTableParts[1].Trim().Equals("m", StringComparison.OrdinalIgnoreCase))
+                {
+                    IsExternalTableMultiSelect = true;
+                }
+            }
+            if (ExternalTable != "")
+            {
+                ExternalTableVar = new RunBaseBuilderVar();
+                ExternalTableVar.Type = ExternalTable;
+                ExternalTableVarBaseName = AxHelper.GetVarNameFromType(ExternalTable);
+                ExternalTableVar.Name = $"caller{AxHelper.UppercaseWords(ExternalTableVarBaseName)}";
+            }
             switch (snippetsParms.GetParmStr(AddFileUploadParmName).ToLower())
             {
                 case "y":
@@ -96,12 +119,8 @@ namespace TRUDUtilsD365.RunBaseBuilder
                     break;
             }
             IsCreateMenuItem = snippetsParms.GetParmBool(CreateMenuItemParmName);
-            if (ExternalTable != "")
-            {
-                ExternalTableVar = new RunBaseBuilderVar();
-                ExternalTableVar.Type = ExternalTable;
-                ExternalTableVar.Name = $"caller{ExternalTable}";
-            }
+
+
             List<List<string>> parmList = snippetsParms.GetParmListSeparated(ParametersParmName);
             FieldsList = new List<RunBaseBuilderVar>();
 
@@ -109,40 +128,53 @@ namespace TRUDUtilsD365.RunBaseBuilder
             {
                 RunBaseBuilderVar runBaseBuilderVars = new RunBaseBuilderVar();
 
-                string item = subList[0];                
-                if (item[item.Length - 1] == MandatoryPropertySym)//check mandatory
+                string item = subList[0];   
+                if (item.Contains(';')) //these vars are copied from class declaration
                 {
-                    runBaseBuilderVars.IsMandatory = true;
-                    runBaseBuilderVars.Type        = item.Remove(item.Length - 1).Trim();
+                    item = item.Replace(";", "");
+                    var itemParts = item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (itemParts.Length < 2)
+                    {
+                        throw new Exception($"Invalid variable declaration '{item}': expected 'Type Name'");
+                    }
+                    runBaseBuilderVars.Type = itemParts[0].Trim();
+                    runBaseBuilderVars.Name = itemParts[1].Trim();
                 }
                 else
-                {
-                    runBaseBuilderVars.IsMandatory = false;
-                    runBaseBuilderVars.Type        = item;
-                }
+                { 
+                    if (item.Length > 0 && item[item.Length - 1] == MandatoryPropertySym)//check mandatory
+                    {
+                        runBaseBuilderVars.IsMandatory = true;
+                        runBaseBuilderVars.Type        = item.Remove(item.Length - 1).Trim();
+                    }
+                    else
+                    {
+                        runBaseBuilderVars.IsMandatory = false;
+                        runBaseBuilderVars.Type        = item;
+                    }
 
-                if (String.IsNullOrEmpty(runBaseBuilderVars.Type))
-                {
-                    throw new Exception("Type should be specified");
-                }
+                    if (String.IsNullOrEmpty(runBaseBuilderVars.Type))
+                    {
+                        throw new Exception("Type should be specified");
+                    }
 
-                if (subList.Count > 1 && ! String.IsNullOrWhiteSpace(subList[1])) //check var name
-                {
-                    runBaseBuilderVars.Name = subList[1];
+                    if (subList.Count > 1 && ! String.IsNullOrWhiteSpace(subList[1])) //check var name
+                    {
+                        runBaseBuilderVars.Name = subList[1];
+                    }
+                    else
+                    {
+                        runBaseBuilderVars.Name = AxHelper.GetVarNameFromType(runBaseBuilderVars.Type);
+                    }
+                    if (subList.Count > 2 && !String.IsNullOrWhiteSpace(subList[2])) 
+                    {
+                        runBaseBuilderVars.Label = subList[2];
+                    }
+                    if (subList.Count > 3 && !String.IsNullOrWhiteSpace(subList[3]))
+                    {
+                        runBaseBuilderVars.LabelHelp = subList[3];
+                    }
                 }
-                else
-                {
-                    runBaseBuilderVars.Name = AxHelper.GetVarNameFromType(runBaseBuilderVars.Type);
-                }
-                if (subList.Count > 2 && !String.IsNullOrWhiteSpace(subList[2])) 
-                {
-                    runBaseBuilderVars.Label = subList[2];
-                }
-                if (subList.Count > 3 && !String.IsNullOrWhiteSpace(subList[3]))
-                {
-                    runBaseBuilderVars.LabelHelp = subList[3];
-                }
-
                 runBaseBuilderVars.DlgName = $"dlg{AxHelper.UppercaseWords(runBaseBuilderVars.Name)}";
                 FieldsList.Add(runBaseBuilderVars);
             }
@@ -263,14 +295,16 @@ namespace TRUDUtilsD365.RunBaseBuilder
                 CodeGenerate.AppendLine("throw error(Error::missingRecord(funcname()));");
                 CodeGenerate.EndBlock();
 
-                CodeGenerate.AppendLine($"runObject.parmCaller{ExternalTable}(_args.record());"); //replace to caller
+                string externalTableParmMethod = AxHelper.UppercaseWords(ExternalTableVar.Name);
+                CodeGenerate.AppendLine($"runObject.parm{externalTableParmMethod}(_args.record());"); //replace to caller
+
                 if (QueryTable != "")
                 {
                     CodeGenerate.AppendLine($"if (_args && _args.record().TableId == tablenum({ExternalTable}))");
                     CodeGenerate.BeginBlock();
                     CodeGenerate.AppendLine($"qbds = runObject.queryRun().query().dataSourceTable(tablenum({QueryTable}));");
                     CodeGenerate.AppendLine("qbds.clearRanges();");
-                    CodeGenerate.AppendLine($"qbds.addRange(fieldnum({QueryTable}, RecId)).value(queryValue(runObject.parmCaller{ExternalTable}().RecId));");
+                    CodeGenerate.AppendLine($"qbds.addRange(fieldnum({QueryTable}, RecId)).value(queryValue(runObject.parm{externalTableParmMethod}().RecId));");
                     CodeGenerate.AppendLine("//runObject.parmIsDisableUnpackQuery(true);");
                     CodeGenerate.EndBlock();
                 }
@@ -349,6 +383,31 @@ namespace TRUDUtilsD365.RunBaseBuilder
                 }
             }
             CodeGenerate.AppendLine("");
+
+            if (IsExternalTableMultiSelect && ExternalTableVar != null)
+            {
+                string localVarName = $"{ExternalTableVarBaseName}Local";
+
+                CodeGenerate.AppendLine("int                 numOfSelectedRecords;");
+                CodeGenerate.AppendLine($"FormDataSource      formDataSource = FormDataUtil::getFormDataSource({ExternalTableVar.Name});");
+                CodeGenerate.AppendLine($"{ExternalTable} {localVarName};");
+                CodeGenerate.AppendLine(" ");
+                CodeGenerate.AppendLine($"for ({localVarName}=formDataSource.getFirst(true) ? formDataSource.getFirst(true) : formDataSource.cursor();");
+                CodeGenerate.AppendLine($"      {localVarName};  {localVarName}=formDataSource.getNext())");
+                CodeGenerate.BeginBlock();
+                CodeGenerate.AppendLine("numOfSelectedRecords++;");
+                CodeGenerate.EndBlock();
+                CodeGenerate.AppendLine("if (numOfSelectedRecords == 1)");
+                CodeGenerate.BeginBlock();
+                CodeGenerate.AppendLine($"dialog.addText(strFmt(\"Do you want to Process record %1 on %2 for %3\",");
+                CodeGenerate.AppendLine($"    {ExternalTableVar.Name}.RecId));");
+                CodeGenerate.EndBlock();
+                CodeGenerate.AppendLine("else");
+                CodeGenerate.BeginBlock();
+                CodeGenerate.AppendLine("dialog.addText(strFmt(\"Process %1 record(s)\", numOfSelectedRecords));");
+                CodeGenerate.EndBlock();
+                CodeGenerate.AppendLine("");
+            }
             CodeGenerate.AppendLine("return dialog;");
             CodeGenerate.EndBlock();
         }
@@ -480,6 +539,34 @@ namespace TRUDUtilsD365.RunBaseBuilder
             foreach (RunBaseBuilderVar df in FieldsList)
             {
                 CodeGenerate.AppendLine($"info(strFmt(\"{df.Name}=%1\", {df.Name}));");
+            }
+            if (IsExternalTableMultiSelect && ExternalTableVar != null)
+            {
+                string localVarName = $"{ExternalTableVarBaseName}Local";
+                string updateVarName = $"{ExternalTableVarBaseName}Upd";
+
+                CodeGenerate.AppendLine("");
+                CodeGenerate.AppendLine("int                 numOfProcessedRecords;");
+                CodeGenerate.AppendLine($"FormDataSource      formDataSource = FormDataUtil::getFormDataSource({ExternalTableVar.Name});");
+                CodeGenerate.AppendLine($"{ExternalTable} {localVarName};");
+                CodeGenerate.AppendLine($"{ExternalTable} {updateVarName};");
+                CodeGenerate.AppendLine("");
+                CodeGenerate.AppendLine($"for ({localVarName}=formDataSource.getFirst(true) ? formDataSource.getFirst(true) : formDataSource.cursor();");
+                CodeGenerate.AppendLine($"      {localVarName};  {localVarName}=formDataSource.getNext())");
+                CodeGenerate.BeginBlock();
+                CodeGenerate.AppendLine("");
+                CodeGenerate.AppendLine("ttsbegin;");
+                CodeGenerate.AppendLine($"{updateVarName} = {ExternalTable}::findRecId({localVarName}.RecId, true);");
+                CodeGenerate.AppendLine($"//if ({updateVarName}.updateAllowed())");
+                CodeGenerate.AppendLine("//{");
+                CodeGenerate.AppendLine($"//    {updateVarName}.update();");
+                CodeGenerate.AppendLine("//    numOfProcessedRecords++;");
+                CodeGenerate.AppendLine("//}");
+                CodeGenerate.AppendLine("");
+                CodeGenerate.AppendLine("ttscommit;");
+                CodeGenerate.AppendLine("");
+                CodeGenerate.EndBlock();
+                CodeGenerate.AppendLine($"info(strFmt(\"Number of records processes: %1\", numOfProcessedRecords));");
             }
             if (IsAddFileUpload != FileUploadType.None)
             {

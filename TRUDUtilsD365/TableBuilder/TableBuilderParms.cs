@@ -6,6 +6,7 @@ using Microsoft.Dynamics.AX.Metadata.MetaModel;
 using Microsoft.Dynamics.Framework.Tools.MetaModel.Core;
 using TRUDUtilsD365.AddTableFindMethod;
 using AxTableField = Microsoft.Dynamics.AX.Metadata.MetaModel.AxTableField;
+using System.Text;
 
 namespace TRUDUtilsD365.TableBuilder
 {
@@ -252,6 +253,7 @@ namespace TRUDUtilsD365.TableBuilder
                 newTable.Name             = TableName;
                 newTable.Label            = TableLabel;
                 newTable.TitleField1      = KeyFieldName;
+                newTable.TitleField2      = "Description";
                 newTable.CacheLookup      = RecordCacheLevel.Found;
                 newTable.ClusteredIndex   = $"{KeyFieldName}Idx";
                 newTable.PrimaryIndex     = newTable.ClusteredIndex;
@@ -261,6 +263,7 @@ namespace TRUDUtilsD365.TableBuilder
                 newTable.CreatedDateTime  = NoYes.Yes;
                 newTable.ModifiedBy       = NoYes.Yes;
                 newTable.ModifiedDateTime = NoYes.Yes;
+                newTable.AllowRowVersionChangeTracking = NoYes.Yes;
 
                 AxTableField primaryField = new AxTableFieldString();
                 primaryField.Name              = KeyFieldName;
@@ -324,6 +327,12 @@ namespace TRUDUtilsD365.TableBuilder
                     axTableFieldGroup.AddField(axTableFieldGroupField);
                 }
                 newTable.AddFieldGroup(axTableFieldGroup);
+
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine($"public class {newTable.Name} extends common");
+                stringBuilder.AppendLine("{");
+                stringBuilder.AppendLine("}");
+                newTable.SourceCode.Declaration = stringBuilder.ToString();
 
                 AddTableFindMethodParms findMethodParms = new AddTableFindMethodParms();
                 findMethodParms.IsCreateFind = true;

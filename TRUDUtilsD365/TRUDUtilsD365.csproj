@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TRUDUtilsD365</RootNamespace>
     <AssemblyName>TRUDUtilsD365</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SkipAssemblyComVisible>true</SkipAssemblyComVisible>
     <TargetFrameworkProfile />
+    <DynamicsVSToolsHintPath>C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\s3rpjihy.vwj</DynamicsVSToolsHintPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,31 +34,54 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="envdte, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\PublicAssemblies\envdte.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Dynamics.AX.Metadata">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\nyyahqed.grm\Microsoft.Dynamics.AX.Metadata.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.AX.Metadata.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Dynamics.AX.Metadata.Core">
-      <HintPath>..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\uhv05n1m.te4\Microsoft.Dynamics.AX.Metadata.Core.dll</HintPath>
+    <Reference Include="Microsoft.Dynamics.Framework.Tools.MetaModel.Core.17.0">
+      <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.Framework.Tools.MetaModel.Core.17.0.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Dynamics.AX.Xpp.Support">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\nyyahqed.grm\Microsoft.Dynamics.AX.Xpp.Support.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.AX.Xpp.Support.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Dynamics.Framework.Tools.MetaModel.Core">
-      <HintPath>..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\uhv05n1m.te4\Microsoft.Dynamics.Framework.Tools.MetaModel.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Framework.Tools.ProjectSupport">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\nyyahqed.grm\Microsoft.Dynamics.Framework.Tools.ProjectSupport.dll</HintPath>
+    <Reference Include="Microsoft.Dynamics.Framework.Tools.ProjectSupport.17.0">
+      <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.Framework.Tools.ProjectSupport.17.0.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Dynamics.Framework.Tools.ProjectSystem">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\nyyahqed.grm\Microsoft.Dynamics.Framework.Tools.ProjectSystem.dll</HintPath>
+    <Reference Include="Microsoft.Dynamics.Framework.Tools.ProjectSystem.17.0">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.Framework.Tools.ProjectSystem.17.0.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Xlnt.XReference.XReferenceProviders">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.AX.Framework.Xlnt.XReference.XReferenceProviders.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.Framework.Tools.MetaModel.17.0">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.Framework.Tools.MetaModel.17.0.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata.Storage">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+      <HintPath Condition="'$(DynamicsVSToolsHintPath)' != ''">$(DynamicsVSToolsHintPath)\Microsoft.Dynamics.AX.Metadata.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Interop, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Interop.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -175,6 +199,15 @@
     <Compile Include="TableFieldsBuilder\TableFieldsBuilderParms.cs" />
     <Compile Include="TableRelationToXpp\TableRelationToXppParms.cs" />
     <Compile Include="TableRelationToXpp\TableRelationToXppMenu.cs" />
+    <Compile Include="ShowCrossReference\ShowCrossReferenceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ShowCrossReference\ShowCrossReferenceDialog.Designer.cs">
+      <DependentUpon>ShowCrossReferenceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ShowCrossReference\CrossReferenceService.cs" />
+    <Compile Include="ShowCrossReference\ShowCrossReferenceParms.cs" />
+    <Compile Include="ShowCrossReference\ShowCrossReferenceMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AddTableFindMethod\AddTableFindMethodDialog.resx">
@@ -231,8 +264,8 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(INETROOT)\Source\Frameworks\DevToolsVS12\common\Microsoft.Dynamics.Framework.Tools.Extensibility.Targets" Condition=" '$(INETROOT)' != '' " />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Dynamics\AX\Microsoft.Dynamics.Framework.Tools.Extensibility.targets" Condition=" '$(INETROOT)' == '' " />
+  <Import Project="$(INETROOT)\Source\Frameworks\DevTools\Common\Microsoft.Dynamics.Framework.Tools.Extensibility.17.0.Targets" Condition=" '$(INETROOT)' != '' " />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Dynamics\AX\Microsoft.Dynamics.Framework.Tools.Extensibility.17.0.targets" Condition=" '$(INETROOT)' == '' " />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

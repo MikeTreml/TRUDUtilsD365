@@ -13,6 +13,7 @@ A set of Visual Studio Add-ins for Microsoft Dynamics 365 for Finance and Operat
 * [Form builder](#form-builder)
 * [RunBase class builder](#runbase-class-builder)
 * [DataContract class builder](#datacontract-class-builder)
+* [Show cross-reference](#show-cross-reference)
 * [Create find method](#create-find-method)
 * [Create menu item](#create-menu-item)
 * [Create security privilege](#create-security-privilege)
@@ -155,6 +156,25 @@ Also can generate a code template for Data provider and [Controller](https://den
 
 ![1547085113848](assets/DataContractBuilder.png)
 
+## Show cross-reference
+
+This Add-in displays cross-references for the selected element, allowing you to see the actual X++ code and determine the access type (Read or Write) for table field references.
+
+Supported element types: Table fields, Data entity fields, View fields, Tables, Classes, Forms, Views, Data entities, Enums, Methods (table/class/form), Table extensions, Form extensions.
+
+Features:
+
+* Displays the code line where the reference occurs (with configurable number of context lines)
+* Filter by module and access type (Read/Write)
+* Sortable grid with default sort by element type, name, and method
+* Go to source navigation (opens the X++ file at the exact line)
+* Copy to clipboard (tab-separated, paste-friendly for Excel)
+* Access type detection: identifies Read vs Write references based on code analysis (including `setField(fieldNum(...))` pattern)
+
+![ShowCrossReference](assets/ShowCrossReference.png)
+
+This tool can be run using Right-click AddIns on any supported element in the designer.
+
 ## Create find method
 
 For this Add-in you will need to select several fields(for the table or table extension)
@@ -190,7 +210,7 @@ Add-in creates table relation for the selected table/table-extension field based
 
 ## Troubleshooting
 
-Current solution was tested on v10 U24.
+Current solution was tested on v10 U43.
 
 All tools require that you have an active project with your current model. The first project in the solution is used.
 
@@ -208,7 +228,7 @@ One of the ways to do this:
 
 Another option (this will run a new instance of VS)
 
-* Open the solution and set the required breakpoints
+* Open the solution and set the required breakpoints (you may need to install .NET 4.8 Developer pack before this - https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48) 
 * Got to the Project->Property->Debug (for TRUDUtilsD365 project)
 * Set start action to "start external program" and specify the parameter "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe"
 * Run the project
@@ -216,6 +236,43 @@ Another option (this will run a new instance of VS)
 ## Installation
 
 ### Using Power Shell
+
+Latest dev version:
+
+```powershell
+# Target folder
+$path = "C:\AAA"
+
+# Ensure TLS 1.2 for GitHub downloads (older PowerShell)
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+} catch { }
+
+# Create the folder if it doesn't exist
+New-Item -Path $path -ItemType Directory -Force | Out-Null
+
+# Files to download (use RAW GitHub URLs, not the /blob/ pages)
+$files = @{
+    "InstallToVS.exe"   = "https://raw.githubusercontent.com/TrudAX/TRUDUtilsD365/master/InstallToVS/bin/Debug/InstallToVS.exe"
+    "TRUDUtilsD365.dll" = "https://raw.githubusercontent.com/TrudAX/TRUDUtilsD365/master/TRUDUtilsD365/bin/Debug/TRUDUtilsD365.dll"
+    "TRUDUtilsD365.pdb" = "https://raw.githubusercontent.com/TrudAX/TRUDUtilsD365/master/TRUDUtilsD365/bin/Debug/TRUDUtilsD365.pdb"
+}
+
+# Download and unblock each file
+foreach ($kvp in $files.GetEnumerator()) {
+    $dest = Join-Path $path $kvp.Key
+    Write-Host "Downloading $($kvp.Key) ..."
+    Invoke-WebRequest -Uri $kvp.Value -OutFile $dest -UseBasicParsing
+    Unblock-File -Path $dest
+}
+
+# Run InstallToVS.exe as Administrator
+$installer = Join-Path $path "InstallToVS.exe"
+Write-Host "Starting $installer elevated..."
+Start-Process -FilePath $installer -WorkingDirectory $path -Verb RunAs
+```
+
+Latest release version:
 
 ```powershell
 $repo = "TrudAX/TRUDUtilsD365"

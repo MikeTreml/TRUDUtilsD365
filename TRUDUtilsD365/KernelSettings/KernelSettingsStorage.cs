@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
-using Microsoft.Dynamics.Ax.Xpp;
-using Microsoft.Dynamics.Framework.Tools.MetaModel.Core;
 using TRUDUtilsD365.Kernel;
 
 
@@ -22,7 +14,7 @@ namespace TRUDUtilsD365.KernelSettings
         public string GetFilePath()
         {
             string fileName = "TRUDUtilsD365Settings.xml";// _" + Common.CommonUtil.GetCurrentModel().Name + ".json";
-            string settingsFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string settingsFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);// Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string filePath = "";
             if (!string.IsNullOrEmpty(settingsFolder))
             {
@@ -79,15 +71,15 @@ namespace TRUDUtilsD365.KernelSettings
 
             if (File.Exists(filePath))
             {
-                FileStream fs = new FileStream(filePath, FileMode.Open);
-                XmlDictionaryReader reader =
-                    XmlDictionaryReader.CreateTextReader(fs, new XmlDictionaryReaderQuotas());
-                DataContractSerializer ser = new DataContractSerializer(typeof(AxModelSettings));
+                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                using (XmlDictionaryReader reader =
+                    XmlDictionaryReader.CreateTextReader(fs, new XmlDictionaryReaderQuotas()))
+                {
+                    DataContractSerializer ser = new DataContractSerializer(typeof(AxModelSettings));
 
-                // Deserialize the data and read it from the instance.
-                axModelSettings = (AxModelSettings)ser.ReadObject(reader, true);
-                reader.Close();
-                fs.Close();
+                    // Deserialize the data and read it from the instance.
+                    axModelSettings = (AxModelSettings)ser.ReadObject(reader, true);
+                }
                 /*
                 doc.Load(filePath);
 

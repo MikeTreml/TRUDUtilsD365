@@ -290,11 +290,31 @@ namespace TRUDUtilsD365.TableFieldsBuilder
         {
             if (! string.IsNullOrEmpty(field.ExtendedDataType))
             {
-                var edt = _axHelper.MetadataProvider.Edts.Read(field.ExtendedDataType);
-                if (edt == null)
+                Boolean checkMore;
+                AxEdt edt;
+                string  curEDTName = field.ExtendedDataType;
+                int iPos = 0;
+                do
                 {
-                    return null;
-                }
+                    iPos++;
+                    checkMore = false;
+                    edt = _axHelper.MetadataProvider.Edts.Read(curEDTName);
+                    if (edt == null)
+                    {
+                        return null;
+                    }
+                    if (!string.IsNullOrEmpty(edt.Extends))
+                    {
+                        //no valid relations for the current edt
+                        if (! (!string.IsNullOrEmpty(edt.ReferenceTable) && edt.TableReferences.Count > 0) &&
+                            !  (edt.Relations != null && edt.Relations.Count > 0))
+                        {
+                            curEDTName = edt.Extends;
+                            checkMore = true;
+                        }
+                    }
+
+                }while (checkMore && iPos < 10);
 
                 AxTableRelationForeignKey axTableRelation = null;
 
@@ -310,7 +330,7 @@ namespace TRUDUtilsD365.TableFieldsBuilder
                     string newRelationName = edt.ReferenceTable;
                     if (existingRelations.Contains(newRelationName))
                     {
-                        newRelationName = edt.ReferenceTable + "_" + field.Name;
+                        newRelationName = newRelationName + "_" + field.Name;
                     }
 
                     axTableRelation = new AxTableRelationForeignKey();
@@ -356,7 +376,7 @@ namespace TRUDUtilsD365.TableFieldsBuilder
                         string newRelationName = firstEdtRelation.Table;
                         if (existingRelations.Contains(newRelationName))
                         {
-                            newRelationName = edt.ReferenceTable + "_" + field.Name;
+                            newRelationName = newRelationName + "_" + field.Name;
                         }
 
                         axTableRelation              = new AxTableRelationForeignKey();
@@ -411,18 +431,15 @@ namespace TRUDUtilsD365.TableFieldsBuilder
                 }
                 if (GroupName != String.Empty)
                 {
-                    if (axTable.FieldGroups.Contains(GroupName))
+                    string groupNameXpp = this.getGroupNameXpp(GroupName);
+                    if (axTable.FieldGroups.Contains(groupNameXpp))
                     {
-                        axTableFieldGroup = axTable.FieldGroups.getObject(GroupName);
+                        axTableFieldGroup = axTable.FieldGroups.getObject(groupNameXpp);
                         axTableFieldGroup.AddField(axTableFieldGroupField);
                     }
                     else
                     {
-                        axTableFieldGroup = new AxTableFieldGroup {Name = GroupName};
-                        if (!string.IsNullOrEmpty(GroupLabel))
-                        {
-                            axTableFieldGroup.Label = GroupLabel;
-                        }
+                        axTableFieldGroup = this.CreateFieldGroup(GroupName, GroupLabel);
                         axTableFieldGroup.AddField(axTableFieldGroupField);
                         axTable.AddFieldGroup(axTableFieldGroup);
                     }
@@ -449,18 +466,16 @@ namespace TRUDUtilsD365.TableFieldsBuilder
 
                 if (GroupName != String.Empty)
                 {
-                    if (axTableExtension.FieldGroups.Contains(GroupName))
+                    string groupNameXpp = this.getGroupNameXpp(GroupName);
+                    if (axTableExtension.FieldGroups.Contains(groupNameXpp))
                     {
-                        axTableFieldGroup = axTableExtension.FieldGroups.getObject(GroupName);
+                        axTableFieldGroup = axTableExtension.FieldGroups.getObject(groupNameXpp);
                         axTableFieldGroup.AddField(axTableFieldGroupField);
                     }
                     else
                     {
-                        axTableFieldGroup = new AxTableFieldGroup { Name = GroupName };
-                        if (!string.IsNullOrEmpty(GroupLabel))
-                        {
-                            axTableFieldGroup.Label = GroupLabel;
-                        }
+                        axTableFieldGroup = this.CreateFieldGroup(GroupName, GroupLabel);
+
                         axTableFieldGroup.AddField(axTableFieldGroupField);
                         axTableExtension.FieldGroups.Add(axTableFieldGroup);
                     }
@@ -478,8 +493,34 @@ namespace TRUDUtilsD365.TableFieldsBuilder
                 _axHelper.MetadataProvider.TableExtensions.Update(axTableExtension, _axHelper.ModelSaveInfo);
             }
         }
+        private string getGroupNameXpp(string groupName)
+        {
+            // Split by space, remove empty entries (works in .NET 4.8)
+            var words = groupName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            // Capitalize the first letter of each word and concatenate
+            string groupNameXpp = "";
+            foreach (var word in words)
+            {
+                if (word.Length > 0)
+                    groupNameXpp += char.ToUpper(word[0], CultureInfo.InvariantCulture) + word.Substring(1);
+            }
+            return groupNameXpp;
+        }
 
-
+        private AxTableFieldGroup CreateFieldGroup(string groupName, string groupLabel)
+        {
+            var groupNameXpp = getGroupNameXpp(groupName);
+            AxTableFieldGroup axTableFieldGroup = new AxTableFieldGroup { Name = groupNameXpp };
+            if (!string.IsNullOrEmpty(groupLabel))
+            {
+                axTableFieldGroup.Label = groupLabel;
+            }
+            else
+            {
+                axTableFieldGroup.Label = groupName;
+            }
+            return axTableFieldGroup;
+        }
     }
 
     public class TableFieldsBuilderParms
@@ -559,6 +600,45 @@ namespace TRUDUtilsD365.TableFieldsBuilder
                 }
 
                 newFieldsList.Add(newFieldEngine.FieldName);
+
+                //do default types
+                if (string.IsNullOrEmpty(newFieldEngine.EdtText))
+                {
+                    switch (newFieldEngine.FieldType)
+                    {
+                        case FieldType.String:
+                            break;
+                        case FieldType.Integer:
+                            newFieldEngine.EdtText = "Integer";
+                            break;
+                        case FieldType.Real:
+                            newFieldEngine.EdtText = "Amount";
+                            break;
+                        case FieldType.DateTime:
+                            newFieldEngine.EdtText = "TransDateTime";
+                            break;
+                        case FieldType.Guid:
+                            break;
+                        case FieldType.Int64:
+                            newFieldEngine.EdtText = "RefRecId";
+                            break;
+                        case FieldType.Enum:
+                            newFieldEngine.EdtText = "NoYesId";
+                            break;
+                        case FieldType.Time:
+                            newFieldEngine.EdtText = "TimeHour24";
+                            break;
+                        case FieldType.Container:
+                            newFieldEngine.EdtText = "InfologData";
+                            break;
+                        case FieldType.Memo:
+                            newFieldEngine.EdtText = "FreeTxt";
+                            break;
+                        case FieldType.Date:
+                            newFieldEngine.EdtText = "TransDate";
+                            break;
+                    }
+                }
             }
         }
 

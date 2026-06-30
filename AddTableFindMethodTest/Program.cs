@@ -1,4 +1,4 @@
-﻿using Dynamics.AX.Application;
+﻿//using Dynamics.AX.Application;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +14,7 @@ using TRUDUtilsD365.RunBaseBuilder;
 using TRUDUtilsD365.TableBuilder;
 using TRUDUtilsD365.TableFieldsBuilder;
 using TRUDUtilsD365.KernelSettings;
+using TRUDUtilsD365.ShowCrossReference;
 using ExtensionClassType = TRUDUtilsD365.Kernel.ExtensionClassType;
 
 namespace AddTableFindMethodTest
@@ -30,12 +31,13 @@ namespace AddTableFindMethodTest
             Application.SetCompatibleTextRenderingDefault(false);
 
             //TestAddTableFindMethod();
+            TestShowCrossReference();
             //TestCreateExtensionClass();
             //TestEnumCreator();
             //TestTableFieldsBuilder();
             //TestRunBaseBuilder();
             //TestDataContractBuilder();
-            TestTableBuilder();
+            //TestTableBuilder();
             //TestSettings();
         }
 
@@ -115,6 +117,16 @@ namespace AddTableFindMethodTest
             Application.Run(dialog);
         }
 
+
+        private static void TestShowCrossReference()
+        {
+            ShowCrossReferenceParms parms = new ShowCrossReferenceParms();
+            parms.Init("SalesLine", "SalesPrice");
+
+            ShowCrossReferenceDialog dialog = new ShowCrossReferenceDialog();
+            dialog.SetParameters(parms);
+            Application.Run(dialog);
+        }
 
         private static void TestAddTableFindMethod()
         {
